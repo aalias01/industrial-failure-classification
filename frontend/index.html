@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Industrial Failure Classifier</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-title">
+        <span class="header-icon">⚙️</span>
+        <div>
+          <h1>Industrial Failure Classifier</h1>
+          <p class="header-sub">Business-cost-tuned failure prediction · AI4I 2020 · XGBoost + SHAP</p>
+        </div>
+      </div>
+      <div id="api-status" class="status-badge status-checking">⏳ Checking API…</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card input-card">
+      <h2>Sensor Readings</h2>
+      <p class="section-hint">Enter current sensor values. The model predicts failure probability using a business-cost-optimal threshold (FN=$50K, FP=$2K).</p>
+
+      <div class="form-grid">
+        <label class="form-group">
+          <span class="label-text">Air Temperature (K)</span>
+          <input type="number" id="air_temp" value="298.1" step="0.1" min="290" max="310" />
+        </label>
+        <label class="form-group">
+          <span class="label-text">Process Temperature (K)</span>
+          <input type="number" id="proc_temp" value="308.6" step="0.1" min="305" max="315" />
+        </label>
+        <label class="form-group">
+          <span class="label-text">Rotational Speed (rpm)</span>
+          <input type="number" id="rpm" value="1551" step="1" min="1168" max="2886" />
+        </label>
+        <label class="form-group">
+          <span class="label-text">Torque (Nm)</span>
+          <input type="number" id="torque" value="42.8" step="0.1" min="3.8" max="76.6" />
+        </label>
+        <label class="form-group">
+          <span class="label-text">Tool Wear (min)</span>
+          <input type="number" id="wear" value="0" step="1" min="0" max="253" />
+        </label>
+      </div>
+
+      <button id="predict-btn" onclick="runPrediction()">Predict Failure Risk</button>
+    </section>
+
+    <section id="result-section" class="card result-card hidden">
+      <h2>Risk Assessment</h2>
+      <div class="risk-display">
+        <div id="risk-badge" class="risk-badge risk-low">
+          <span id="risk-icon">✅</span>
+          <span id="risk-label">Low Risk</span>
+        </div>
+        <div class="probability-display">
+          <div class="prob-number" id="prob-number">0.00%</div>
+          <div class="prob-label">Failure Probability</div>
+        </div>
+        <div class="threshold-info">
+          <span id="threshold-text">Threshold: 0.5 · Prediction: No Failure</span>
+        </div>
+      </div>
+
+      <div id="cost-warning" class="cost-warning hidden">
+        ⚠️ <strong>Estimated cost if failure missed:</strong> <span id="cost-value">$0</span>
+      </div>
+
+      <div id="shap-section" class="shap-section hidden">
+        <h3>Top Contributing Factors</h3>
+        <p class="section-hint">SHAP values show each sensor's contribution to the predicted risk.</p>
+        <div id="shap-bars"></div>
+      </div>
+    </section>
+
+    <section class="card info-card">
+      <h2>How Threshold Tuning Works</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-icon">⚖️</div>
+          <h3>Asymmetric Costs</h3>
+          <p>Missing a real failure costs <strong>$50,000</strong> in unplanned downtime. A false alarm costs <strong>$2,000</strong> in unnecessary maintenance. These are very different errors.</p>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">📉</div>
+          <h3>Default 0.5 is Wrong</h3>
+          <p>The default threshold maximizes accuracy — which is misleading when failures are only 3.4% of records. 97% accuracy by always predicting "no failure" is useless.</p>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🎯</div>
+          <h3>Cost-Optimal Threshold</h3>
+          <p>The optimal threshold minimizes: <code>FN × $50K + FP × $2K</code>. This shifts the threshold from 0.5 to ~0.25 — catching more real failures at the cost of more false alarms.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built by <a href="https://github.com/aalias01" target="_blank">Alvin Alias</a> — MS Data Science, UW · 12 years industrial engineering · XGBoost + SHAP + business-cost threshold tuning</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

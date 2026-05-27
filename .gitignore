@@ -1,0 +1,16 @@
+**/*_local/
+data/raw/
+*.csv
+__pycache__/
+*.pyc
+*.egg-info/
+.env
+.venv/
+.ipynb_checkpoints/
+# Keep trained artifacts for API
+models/*
+!models/.gitkeep
+!models/xgb_classifier.joblib
+!models/scaler.joblib
+!models/model_meta.json
+.DS_Store
