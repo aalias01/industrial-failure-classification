@@ -9,7 +9,7 @@ MODEL_DIR = Path("models")
 _clf: Optional[FailureClassifier] = None
 _ready = False
 
-RISK_LEVELS = [(0.25, "low"), (0.60, "medium"), (1.01, "high")]
+LOW_RISK_CUTOFF = 0.25
 
 
 def load_model() -> None:
@@ -35,11 +35,12 @@ def predict(reading: SensorReading, include_shap: bool = True) -> PredictRespons
     proba = float(_clf.predict_proba(row_df)[0])
     pred  = int(proba >= _clf.optimal_threshold)
 
-    risk_level = "high"
-    for threshold, level in RISK_LEVELS:
-        if proba < threshold:
-            risk_level = level
-            break
+    if proba < min(LOW_RISK_CUTOFF, _clf.optimal_threshold):
+        risk_level = "low"
+    elif proba < _clf.optimal_threshold:
+        risk_level = "medium"
+    else:
+        risk_level = "high"
 
     shap_factors = None
     if include_shap:

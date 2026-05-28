@@ -3,7 +3,7 @@ src/model.py — Training, evaluation, and threshold selection for failure class
 
 Key concepts:
     1. Class imbalance handling: SMOTE + class_weight / scale_pos_weight
-    2. Business-cost threshold tuning: FN=$50K, FP=$2K → optimal threshold ~0.25
+    2. Business-cost threshold tuning: FN=$50K, FP=$2K → threshold selected by cost
     3. Model persistence: joblib for API use
 
 Usage:
@@ -63,7 +63,7 @@ def find_cost_optimal_threshold(
     Interview story:
         'Standard ML defaults to 0.5. For failure prediction, a missed failure costs
         $50K vs. $2K for unnecessary maintenance. I built a cost model and found the
-        threshold that minimizes total operational cost — it shifted to ~0.25.'
+        threshold that minimizes total operational cost instead of assuming 0.5.'
     """
     if thresholds is None:
         thresholds = np.arange(0.05, 0.95, 0.025)

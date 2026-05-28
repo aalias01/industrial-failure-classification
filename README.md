@@ -9,8 +9,10 @@
 
 In industrial settings, equipment failures are rare (~3% of records) but catastrophic. A model that predicts "no failure" on every input achieves 97% accuracy while being completely useless. This project builds a **business-cost-tuned failure classifier** — selecting the optimal prediction threshold based on real maintenance economics, not statistical defaults.
 
-**Live demo:** [your-project.vercel.app](https://your-project.vercel.app) *(fill in after deploy)*  
-**API docs:** [your-api.onrender.com/docs](https://your-api.onrender.com/docs) *(fill in after deploy)*
+**Project status:** model artifacts, notebooks, and figures are complete locally; live deploy links still need completion.  
+**Live demo:** pending Vercel deploy  
+**API docs:** pending Render deploy  
+**Ship checklist:** see [PORTFOLIO_READINESS.md](PORTFOLIO_READINESS.md)
 
 ---
 
@@ -31,8 +33,8 @@ for threshold in np.arange(0.1, 0.9, 0.05):
     total_cost = fn_cost + fp_cost
 ```
 
-At the default 0.5 threshold: high precision, low recall — misses real failures.  
-At the **cost-optimal threshold (~0.25)**: better recall, acceptable precision — correct for the asymmetric cost structure.
+At the default 0.5 threshold: catches most failures, but creates extra false alarms.  
+At the **cost-optimal threshold (0.775 in the current quick-build artifact)**: total estimated cost drops by reducing unnecessary maintenance calls while keeping recall above 91%.
 
 *"This is what 12 years of engineering experience looks like applied to ML. Maintenance managers don't think in F1 scores. They think in downtime costs."*
 
@@ -48,6 +50,8 @@ notebooks/01_eda.ipynb         — Class imbalance, feature distributions
 notebooks/02_modeling.ipynb    — LR → RF → XGBoost + SMOTE + class weights
 notebooks/03_evaluation.ipynb  — Confusion matrix, ROC, PR curve, cost analysis
 notebooks/04_shap.ipynb        — Feature importance + individual prediction SHAP
+        ↓
+scripts/train_model.py         — Repeatable model build for deployment artifacts
         ↓
 src/model.py                   — Training, evaluation, threshold selection
 src/features.py                — Feature engineering
@@ -80,14 +84,22 @@ Five specific failure modes also labeled: Tool Wear Failure (TWF), Heat Dissipat
 
 ## Model Comparison
 
-*Filled in after notebook runs.*
+Current results from the executed notebooks and `scripts/train_model.py`, using an 80/20 stratified train/test split.
 
 | Model | PR-AUC | F1 | Recall | Precision | Notes |
 |-------|--------|-----|--------|-----------|-------|
-| Logistic Regression (baseline) | — | — | — | — | class_weight='balanced' |
-| Random Forest | — | — | — | — | SMOTE |
-| **XGBoost** | — | — | — | — | scale_pos_weight + cost threshold |
-| XGBoost @ cost-optimal threshold | — | — | — | — | FN=$50K, FP=$2K |
+| Logistic Regression (baseline) | 0.455 | 0.311 | 0.868 | 0.189 | class_weight='balanced' |
+| Random Forest | 0.820 | 0.682 | 0.868 | 0.562 | SMOTE |
+| **XGBoost** | 0.841 | 0.601 | 0.897 | 0.452 | SMOTE + scale_pos_weight |
+| XGBoost @ cost-optimal threshold | 0.841 | 0.582 | 0.912 | 0.428 | threshold=0.775, FN=$50K, FP=$2K |
+
+### Evaluation Figures
+
+![Business cost vs threshold](figures/cost_vs_threshold.png)
+
+![Confusion matrices](figures/confusion_matrices.png)
+
+![Precision-recall curve](figures/pr_curve.png)
 
 ---
 
@@ -117,9 +129,21 @@ python -m ipykernel install --user --name industrial-failure --display-name "ind
 # Data downloads automatically in notebook 01 via UCI URL
 # Or manually: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset
 
+# Quick model build for API artifacts
+python scripts/train_model.py
+
 # Run notebooks in order: 01 → 02 → 03 → 04
 # Then: uvicorn api.main:app --reload
 ```
+
+Expected model artifacts after training:
+
+- `models/xgb_classifier.joblib`
+- `models/scaler.joblib`
+- `models/model_meta.json`
+- `figures/model_results.json`
+
+The committed quick-build artifact currently uses a cost-selected threshold of `0.775`.
 
 ---
 
@@ -127,11 +151,11 @@ python -m ipykernel install --user --name industrial-failure --display-name "ind
 
 1. **Accuracy is misleading:** *"Predicting 'no failure' always gives 97% accuracy on this dataset. I optimized for PR-AUC and F1 instead — the only metrics that matter under class imbalance."*
 
-2. **Threshold tuning:** *"The default 0.5 threshold misses real failures. I built a cost model — $50K for a missed failure vs. $2K for unnecessary maintenance — and found the threshold that minimizes total operational cost. It shifted from 0.5 to 0.25."*
+2. **Threshold tuning:** *"The default 0.5 threshold was not the economic optimum. I built a cost model — $50K for a missed failure vs. $2K for unnecessary maintenance — and selected the threshold that minimized total estimated maintenance cost. In the current artifact, that threshold is 0.775."*
 
 3. **SMOTE:** *"SMOTE generates synthetic minority-class samples in feature space, not just duplicates. Combined with XGBoost's scale_pos_weight, it gave the best recall without sacrificing too much precision."*
 
-4. **SHAP:** *"Tool wear and torque are the dominant predictors — consistent with known mechanical physics. A high-torque + high-wear reading is the physical signature of imminent failure."*
+4. **SHAP:** *"Power, rotational speed, tool wear, and torque are the strongest contributors — consistent with mechanical stress and accumulated wear physics."*
 
 5. **Complement to CMAPSS:** *"CMAPSS predicts how many cycles remain (regression). This predicts will it fail in the next N cycles (classification). Same domain, different paradigm — together they demonstrate the full predictive maintenance toolbox."*
 

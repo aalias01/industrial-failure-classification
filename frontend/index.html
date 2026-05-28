@@ -94,7 +94,7 @@
         <div class="info-item">
           <div class="info-icon">🎯</div>
           <h3>Cost-Optimal Threshold</h3>
-          <p>The optimal threshold minimizes: <code>FN × $50K + FP × $2K</code>. This shifts the threshold from 0.5 to ~0.25 — catching more real failures at the cost of more false alarms.</p>
+          <p>The optimal threshold minimizes: <code>FN × $50K + FP × $2K</code>. In the current model, that moves the operating threshold to 0.775, reducing false alarms while keeping recall high.</p>
         </div>
       </div>
     </section>
@@ -104,6 +104,10 @@
     <p>Built by <a href="https://github.com/aalias01" target="_blank">Alvin Alias</a> — MS Data Science, UW · 12 years industrial engineering · XGBoost + SHAP + business-cost threshold tuning</p>
   </footer>
 
+  <!--
+    For deployment, define window.INDUSTRIAL_FAILURE_API_BASE before app.js:
+    <script>window.INDUSTRIAL_FAILURE_API_BASE = 'https://your-render-api.onrender.com';</script>
+  -->
   <script src="app.js"></script>
 </body>
 </html>

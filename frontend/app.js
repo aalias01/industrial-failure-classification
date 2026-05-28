@@ -1,7 +1,11 @@
 'use strict';
 
-// Update this after deploying to Render
-const API_BASE = 'http://localhost:8000';
+const DEFAULT_API_BASE = 'http://localhost:8000';
+const API_BASE = (
+  window.INDUSTRIAL_FAILURE_API_BASE ||
+  localStorage.getItem('industrialFailureApiBase') ||
+  DEFAULT_API_BASE
+).replace(/\/$/, '');
 
 // ─── API health check ─────────────────────────────────────────────────────
 async function checkHealth() {

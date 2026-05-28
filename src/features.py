@@ -28,7 +28,8 @@ UCI_URL = (
     "https://archive.ics.uci.edu/static/public/601/"
     "ai4i+2020+predictive+maintenance+dataset.zip"
 )
-RAW_PATH = Path("data/raw/ai4i2020.csv")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+RAW_PATH = PROJECT_ROOT / "data/raw/ai4i2020.csv"
 
 RAW_FEATURE_COLS = [
     "Air temperature [K]",

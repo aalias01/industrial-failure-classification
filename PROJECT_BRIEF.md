@@ -130,9 +130,9 @@ This business cost framing is what makes this project different from "I ran XGBo
 ## Interview Talking Points
 
 1. *"Accuracy is misleading on this dataset — 97% accuracy by predicting 'no failure' every time. I optimized for F1 score and PR-AUC instead."*
-2. *"I tuned the classification threshold using a business cost model — a missed failure costs $50K in unplanned downtime vs. $2K for unnecessary maintenance. The optimal threshold shifted from 0.5 to 0.25."*
+2. *"I tuned the classification threshold using a business cost model — a missed failure costs $50K in unplanned downtime vs. $2K for unnecessary maintenance. The optimal threshold was selected from the cost curve instead of assuming 0.5."*
 3. *"SMOTE generates synthetic minority class samples in feature space. Combined with XGBoost's scale_pos_weight, it gave the best recall without sacrificing too much precision."*
-4. *"The SHAP analysis showed tool wear and torque are the dominant failure predictors — consistent with known mechanical wear physics."*
+4. *"The SHAP analysis highlighted power, rotational speed, tool wear, and torque as dominant contributors — consistent with mechanical stress and accumulated wear physics."*
 
 ---
 
