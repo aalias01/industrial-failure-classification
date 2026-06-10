@@ -9,10 +9,8 @@
 
 In industrial settings, equipment failures are rare (~3% of records) but catastrophic. A model that predicts "no failure" on every input achieves 97% accuracy while being completely useless. This project builds a **business-cost-tuned failure classifier** — selecting the optimal prediction threshold based on real maintenance economics, not statistical defaults.
 
-**Project status:** model artifacts, notebooks, and figures are complete locally; live deploy links still need completion.  
 **Live demo:** pending Vercel deploy  
-**API docs:** pending Render deploy  
-**Ship checklist:** see [PORTFOLIO_READINESS.md](PORTFOLIO_READINESS.md)
+**API docs:** pending Render deploy
 
 ---
 
@@ -36,7 +34,7 @@ for threshold in np.arange(0.1, 0.9, 0.05):
 At the default 0.5 threshold: catches most failures, but creates extra false alarms.  
 At the **cost-optimal threshold (0.775 in the current quick-build artifact)**: total estimated cost drops by reducing unnecessary maintenance calls while keeping recall above 91%.
 
-*"This is what 12 years of engineering experience looks like applied to ML. Maintenance managers don't think in F1 scores. They think in downtime costs."*
+Maintenance managers don't think in F1 scores — they think in downtime costs. This threshold choice translates the model into those terms.
 
 ---
 
@@ -110,7 +108,7 @@ Current results from the executed notebooks and `scripts/train_model.py`, using 
 | Modeling | XGBoost + scikit-learn RF + Logistic Regression |
 | Imbalance handling | SMOTE (imblearn) + class_weight / scale_pos_weight |
 | Evaluation | Confusion matrix, PR curve, ROC-AUC, F1 |
-| Interpretability | SHAP TreeExplainer |
+| Interpretability | SHAP (notebooks) · XGBoost native `pred_contribs` (API) |
 | API | FastAPI on Render |
 | Frontend | Vanilla HTML/CSS/JS on Vercel |
 
@@ -147,17 +145,17 @@ The committed quick-build artifact currently uses a cost-selected threshold of `
 
 ---
 
-## Interview Context
+## Design Decisions
 
-1. **Accuracy is misleading:** *"Predicting 'no failure' always gives 97% accuracy on this dataset. I optimized for PR-AUC and F1 instead — the only metrics that matter under class imbalance."*
+1. **Accuracy is misleading here.** Predicting "no failure" always gives 97% accuracy on this dataset. The project optimizes PR-AUC and F1 instead — the metrics that actually matter under class imbalance.
 
-2. **Threshold tuning:** *"The default 0.5 threshold was not the economic optimum. I built a cost model — $50K for a missed failure vs. $2K for unnecessary maintenance — and selected the threshold that minimized total estimated maintenance cost. In the current artifact, that threshold is 0.775."*
+2. **Threshold tuning over defaults.** The default 0.5 threshold was not the economic optimum. A cost model — $50K for a missed failure vs. $2K for unnecessary maintenance — selects the threshold that minimizes total estimated maintenance cost (0.775 in the current artifact).
 
-3. **SMOTE:** *"SMOTE generates synthetic minority-class samples in feature space, not just duplicates. Combined with XGBoost's scale_pos_weight, it gave the best recall without sacrificing too much precision."*
+3. **SMOTE + scale_pos_weight.** SMOTE generates synthetic minority-class samples in feature space, not just duplicates. Combined with XGBoost's `scale_pos_weight`, it gave the best recall without sacrificing too much precision.
 
-4. **SHAP:** *"Power, rotational speed, tool wear, and torque are the strongest contributors — consistent with mechanical stress and accumulated wear physics."*
+4. **Physics-consistent explanations.** Power, rotational speed, tool wear, and torque are the strongest SHAP contributors — consistent with mechanical stress and accumulated wear physics.
 
-5. **Complement to CMAPSS:** *"CMAPSS predicts how many cycles remain (regression). This predicts will it fail in the next N cycles (classification). Same domain, different paradigm — together they demonstrate the full predictive maintenance toolbox."*
+5. **Classification, not RUL regression.** CMAPSS-style projects predict *how many cycles remain* (regression); this predicts *will it fail in the next N cycles* (classification). Same domain, different paradigm.
 
 ---
 
