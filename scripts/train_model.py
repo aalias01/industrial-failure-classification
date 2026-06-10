@@ -23,6 +23,7 @@ from src.model import FailureClassifier
 def main() -> None:
     download_data()
     df = build_features(load_raw())
+    high_load_cutoff = df.attrs.get("high_load_cutoff")
     X, y = get_X_y(df)
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -33,7 +34,11 @@ def main() -> None:
         random_state=42,
     )
 
-    clf = FailureClassifier(model_type="xgb", use_smote=True)
+    clf = FailureClassifier(
+        model_type="xgb",
+        use_smote=True,
+        high_load_cutoff=high_load_cutoff,
+    )
     clf.fit(X_train, y_train)
 
     results = clf.evaluate(X_test, y_test)

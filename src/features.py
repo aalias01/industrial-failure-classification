@@ -80,15 +80,30 @@ def load_raw(csv_path: str = str(RAW_PATH)) -> pd.DataFrame:
     return df
 
 
-def build_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Add domain-engineered features."""
+def build_features(
+    df: pd.DataFrame,
+    high_load_cutoff: float | None = None,
+) -> pd.DataFrame:
+    """Add domain-engineered features.
+
+    Args:
+        df: Raw dataframe with the AI4I columns.
+        high_load_cutoff: Fixed cutoff for the binary `high_load` feature. If
+            None, the 75th percentile of `power` in `df` is used (training-time
+            behavior). For inference on a single row, pass the cutoff persisted
+            in `models/model_meta.json` so the feature matches what was learned.
+
+    Returns:
+        Dataframe with engineered features appended.
+    """
     df = df.copy()
     df["temp_diff"]      = df["Process temperature [K]"] - df["Air temperature [K]"]
     df["power"]          = df["Rotational speed [rpm]"] * df["Torque [Nm]"]
     df["wear_rate"]      = df["Tool wear [min]"] / (df["Rotational speed [rpm]"] + 1)
     df["torque_per_wear"]= df["Torque [Nm]"] / (df["Tool wear [min]"] + 1)
-    power_p75 = df["power"].quantile(0.75)
-    df["high_load"]      = (df["power"] >= power_p75).astype(int)
+    cutoff = float(high_load_cutoff) if high_load_cutoff is not None else float(df["power"].quantile(0.75))
+    df["high_load"]      = (df["power"] >= cutoff).astype(int)
+    df.attrs["high_load_cutoff"] = cutoff
     return df
 
 

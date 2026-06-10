@@ -98,6 +98,7 @@ class FailureClassifier:
         use_smote: bool = True,
         fn_cost: float = FN_COST,
         fp_cost: float = FP_COST,
+        high_load_cutoff: Optional[float] = None,
     ):
         self.model_type = model_type
         self.use_smote = use_smote
@@ -107,6 +108,11 @@ class FailureClassifier:
         self.model = self._build_model()
         self.optimal_threshold: float = 0.5
         self.feature_names: list[str] = []
+        # 75th-percentile cutoff of `power` (rpm * torque) used to construct the
+        # binary `high_load` engineered feature. Persisted so the API can build
+        # the same feature for single-row predictions without re-deriving from
+        # the training data.
+        self.high_load_cutoff: Optional[float] = high_load_cutoff
         self.is_fitted = False
 
     def _build_model(self):
@@ -190,13 +196,37 @@ class FailureClassifier:
         return {"cv_pr_auc_mean": round(scores.mean(), 4), "cv_pr_auc_std": round(scores.std(), 4)}
 
     def top_shap_factors(self, x: dict, top_n: int = 5) -> list[dict]:
-        """Per-prediction SHAP factors for API response."""
-        import shap
+        """Per-prediction SHAP factors for API response.
+
+        Uses XGBoost's native `pred_contribs=True` for tree-based models —
+        produces identical values to `shap.TreeExplainer` (which wraps the same
+        XGBoost internals) but without depending on shap-vs-xgboost version
+        compatibility. Falls back to shap for non-tree models.
+        """
         row = pd.DataFrame([x])[self.feature_names].fillna(0)
         X_arr = self.scaler.transform(row)
-        explainer = shap.TreeExplainer(self.model)
-        shap_values = explainer.shap_values(X_arr)
-        sv = shap_values[0] if isinstance(shap_values, list) else shap_values[0]
+
+        if self.model_type in ("xgb", "rf"):
+            # XGBoost Booster: pred_contribs returns shape (n_rows, n_features + 1).
+            # Last column is the base/expected value — drop it.
+            if self.model_type == "xgb":
+                import xgboost as xgb
+                # XGBoost DMatrix rejects feature names containing '[', ']', '<' —
+                # the AI4I raw columns have units in brackets, so pass positional.
+                dmat = xgb.DMatrix(X_arr)
+                contribs = self.model.get_booster().predict(dmat, pred_contribs=True)
+                sv = np.asarray(contribs[0][:-1])
+            else:
+                # Random Forest path uses shap (RF has stable shap support).
+                import shap
+                explainer = shap.TreeExplainer(self.model)
+                shap_values = explainer.shap_values(X_arr)
+                sv = np.asarray(shap_values[1][0] if isinstance(shap_values, list) else shap_values[0])
+        else:
+            import shap
+            explainer = shap.LinearExplainer(self.model, X_arr)
+            sv = np.asarray(explainer.shap_values(X_arr)[0])
+
         idx_sorted = np.argsort(np.abs(sv))[::-1][:top_n]
         return [
             {
@@ -219,6 +249,7 @@ class FailureClassifier:
             "optimal_threshold": self.optimal_threshold,
             "fn_cost": self.fn_cost,
             "fp_cost": self.fp_cost,
+            "high_load_cutoff": self.high_load_cutoff,
         }
         (path / "model_meta.json").write_text(json.dumps(meta, indent=2))
         print(f"[model] Saved to {path}")
@@ -227,7 +258,12 @@ class FailureClassifier:
     def load(cls, model_dir: str = "models/") -> "FailureClassifier":
         path = Path(model_dir)
         meta = json.loads((path / "model_meta.json").read_text())
-        obj = cls(model_type=meta["model_type"], fn_cost=meta["fn_cost"], fp_cost=meta["fp_cost"])
+        obj = cls(
+            model_type=meta["model_type"],
+            fn_cost=meta["fn_cost"],
+            fp_cost=meta["fp_cost"],
+            high_load_cutoff=meta.get("high_load_cutoff"),
+        )
         obj.scaler = joblib.load(path / "scaler.joblib")
         obj.model = joblib.load(path / "xgb_classifier.joblib")
         obj.feature_names = meta["feature_names"]

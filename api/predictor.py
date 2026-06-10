@@ -60,7 +60,16 @@ def predict(reading: SensorReading, include_shap: bool = True) -> PredictRespons
     )
 
 
+# Fallback only — the trained model persists the actual training-time 75th
+# percentile of `power` in `models/model_meta.json` (high_load_cutoff). The API
+# reads it from the loaded model so this fallback should never apply in practice.
+_HIGH_LOAD_FALLBACK = 66873.75
+
+
 def _reading_to_features(r: SensorReading) -> dict:
+    power = r.rotational_speed_rpm * r.torque_nm
+    cutoff = (_clf.high_load_cutoff if _clf and _clf.high_load_cutoff is not None
+              else _HIGH_LOAD_FALLBACK)
     return {
         "Air temperature [K]":       r.air_temperature_k,
         "Process temperature [K]":   r.process_temperature_k,
@@ -68,8 +77,8 @@ def _reading_to_features(r: SensorReading) -> dict:
         "Torque [Nm]":               r.torque_nm,
         "Tool wear [min]":           r.tool_wear_min,
         "temp_diff":                 r.process_temperature_k - r.air_temperature_k,
-        "power":                     r.rotational_speed_rpm * r.torque_nm,
+        "power":                     power,
         "wear_rate":                 r.tool_wear_min / (r.rotational_speed_rpm + 1),
         "torque_per_wear":           r.torque_nm / (r.tool_wear_min + 1),
-        "high_load":                 int(r.rotational_speed_rpm * r.torque_nm >= 60000),
+        "high_load":                 int(power >= cutoff),
     }

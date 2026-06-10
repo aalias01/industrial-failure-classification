@@ -14,5 +14,6 @@
   ],
   "optimal_threshold": 0.7750000000000002,
   "fn_cost": 50000,
-  "fp_cost": 2000
+  "fp_cost": 2000,
+  "high_load_cutoff": 66873.75
 }
