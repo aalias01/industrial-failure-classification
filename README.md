@@ -1,6 +1,6 @@
 # Industrial Failure Classification
 
-> **Imbalanced-class binary failure prediction — tuned for actual maintenance economics, not default 0.5 threshold.**
+> **Imbalanced-class binary failure prediction tuned for actual maintenance economics: the threshold that minimizes downtime cost is 0.775, not the default 0.5.**
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.0-orange)](https://xgboost.readthedocs.io/)
