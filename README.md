@@ -9,7 +9,7 @@
 
 In industrial settings, equipment failures are rare (~3% of records) but catastrophic. A model that predicts "no failure" on every input achieves 97% accuracy while being completely useless. This project builds a **business-cost-tuned failure classifier** — selecting the optimal prediction threshold based on real maintenance economics, not statistical defaults.
 
-**Live demo:** [industrial-failure-classification.vercel.app](https://industrial-failure-classification.vercel.app)  
+**Live demo:** [machine-failure.alvinalias.com](https://machine-failure.alvinalias.com)  
 **API docs:** [industrial-failure-classification.onrender.com/docs](https://industrial-failure-classification.onrender.com/docs)
 
 > Note: the API runs on Render's free tier and spins down when idle — the first request may take ~50 seconds while it wakes.

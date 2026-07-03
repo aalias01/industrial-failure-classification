@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Industrial Failure Classifier — redesign mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d10; --panel:#11161c; --panel2:#161c23; --raise:#1b232b;
+    --line:#222b34; --line2:#2e3a45;
+    --ink:#e8eef3; --dim:#8a98a5; --faint:#566370;
+    --amber:#ffb000; --amber2:#b87d10;
+    --green:#36d399; --red:#ff5247; --red2:#c23a32;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --grot:'Space Grotesk',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(255,176,0,.04), transparent 60%),
+      linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
+      var(--bg);
+    background-size:auto, 30px 30px, 30px 30px, auto;
+    color:var(--ink); font-family:var(--grot);
+    -webkit-font-smoothing:antialiased; padding:26px 20px 40px;
+  }
+  .wrap{max-width:1080px; margin:0 auto}
+
+  /* ---------- status bar ---------- */
+  .bar{display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:12px 16px; border:1px solid var(--line); border-radius:10px;
+    background:linear-gradient(var(--panel),var(--bg)); flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:12px; min-width:0}
+  .brand h1{font:600 16px/1 var(--grot); letter-spacing:.16em; margin:0; text-transform:uppercase}
+  .tagrow{display:flex; gap:6px; margin-top:6px}
+  .tag{font:500 9.5px/1 var(--mono); letter-spacing:.1em; color:var(--dim);
+    border:1px solid var(--line2); border-radius:4px; padding:3px 6px}
+  .stats{display:flex; align-items:center; gap:18px; font:500 11px/1 var(--mono); color:var(--dim)}
+  .stats b{color:var(--ink); font-weight:700}
+  .led{display:flex; align-items:center; gap:7px; color:var(--green)}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--green);
+    box-shadow:0 0 0 3px rgba(54,211,153,.18)}
+
+  /* ---------- console grid ---------- */
+  .console{display:grid; grid-template-columns:minmax(270px,330px) 1fr; gap:16px; margin-top:16px}
+  @media(max-width:820px){.console{grid-template-columns:1fr}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px}
+  .h{display:flex; align-items:center; gap:8px; font:500 11px/1 var(--mono);
+    letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:0 0 14px}
+  .h::before{content:""; width:7px; height:7px; background:var(--amber); border-radius:1px; display:inline-block}
+
+  /* inputs */
+  .field{margin-bottom:14px}
+  .frow{display:flex; justify-content:space-between; align-items:baseline}
+  .flabel{font:500 10px/1 var(--mono); letter-spacing:.1em; color:var(--dim)}
+  .funit{font:400 10px/1 var(--mono); color:var(--faint)}
+  .fval{font:500 22px/1.1 var(--mono); color:var(--ink); margin:3px 0 6px}
+  .track{position:relative; height:3px; background:var(--line2); border-radius:2px}
+  .mark{position:absolute; top:-4px; width:2px; height:11px; border-radius:1px; transform:translateX(-1px)}
+  .mark.g{background:var(--green)} .mark.a{background:var(--amber)} .mark.r{background:var(--red)}
+
+  .presets{display:flex; gap:6px; margin:18px 0 12px}
+  .chip{flex:1; text-align:center; font:500 9.5px/1 var(--mono); letter-spacing:.08em;
+    padding:8px 4px; border:1px solid var(--line2); border-radius:6px; color:var(--dim); cursor:default}
+  .chip.on{border-color:var(--red2); color:var(--red); background:rgba(255,82,71,.08)}
+  .run{width:100%; border:0; border-radius:7px; cursor:default;
+    background:var(--amber); color:#1a1205; font:700 13px/1 var(--grot); letter-spacing:.1em;
+    text-transform:uppercase; padding:14px; margin-top:4px}
+
+  /* result pane */
+  .pane{display:flex; flex-direction:column; gap:16px}
+  .verdict{display:flex; align-items:center; justify-content:space-between; gap:14px;
+    border:1px solid var(--red2); background:rgba(255,82,71,.08); border-radius:10px; padding:14px 16px}
+  .verdict .vmain{display:flex; align-items:center; gap:13px}
+  .vico{width:34px; height:34px; flex:none; border-radius:50%; border:2px solid var(--red);
+    display:grid; place-items:center; color:var(--red); font:700 18px/1 var(--grot)}
+  .vtitle{font:600 15px/1.1 var(--grot); letter-spacing:.04em; color:#ff7a72; margin:0}
+  .vsub{font:400 11px/1.3 var(--mono); color:var(--dim); margin:5px 0 0}
+  .vsub b{color:var(--ink); font-weight:500}
+  .costchip{flex:none; font:500 10px/1.3 var(--mono); letter-spacing:.04em; text-align:right;
+    color:var(--amber); border:1px solid var(--amber2); border-radius:6px; padding:7px 10px; background:rgba(255,176,0,.07)}
+
+  .twin{display:grid; grid-template-columns:1fr 1.15fr; gap:16px}
+  @media(max-width:560px){.twin{grid-template-columns:1fr}}
+  svg{display:block; width:100%; height:auto}
+  .cap{font:400 10.5px/1.5 var(--mono); color:var(--faint); margin:10px 0 0}
+
+  .legend{margin-left:auto; display:flex; gap:14px; font:500 10px/1 var(--mono); letter-spacing:.04em; color:var(--dim)}
+  .legend i{display:inline-block; width:11px; height:0; border-top-width:2px; border-top-style:solid; vertical-align:middle; margin-right:5px}
+
+  .foot{margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+    font:400 9.5px/1.5 var(--mono); letter-spacing:.04em; color:var(--faint);
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== status bar ===== -->
+  <div class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" fill="none" stroke="#ffb000" stroke-width="2"/>
+        <line x1="16" y1="3.2" x2="16" y2="6.4" stroke="#ffb000" stroke-width="1.6"/>
+        <line x1="29" y1="16" x2="25.6" y2="16" stroke="#566370" stroke-width="1.6"/>
+        <line x1="3" y1="16" x2="6.4" y2="16" stroke="#566370" stroke-width="1.6"/>
+        <line x1="16" y1="16" x2="23.2" y2="9.2" stroke="#ffb000" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="2.4" fill="#ffb000"/>
+      </svg>
+      <div>
+        <h1>Industrial Failure Classifier</h1>
+        <div class="tagrow">
+          <span class="tag">AI4I-2020</span>
+          <span class="tag">XGBOOST</span>
+          <span class="tag">SHAP</span>
+          <span class="tag">COST-TUNED τ</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <span>τ&nbsp;<b>0.775</b></span>
+      <span>p95&nbsp;<b>41ms</b></span>
+      <span class="led"><span class="dot"></span>SYSTEM ONLINE</span>
+    </div>
+  </div>
+
+  <!-- ===== console ===== -->
+  <div class="console">
+
+    <!-- input rail -->
+    <div class="card">
+      <p class="h">Sensor inputs</p>
+
+      <div class="field">
+        <div class="frow"><span class="flabel">AIR TEMP</span><span class="funit">K</span></div>
+        <div class="fval">300.1</div>
+        <div class="track"><span class="mark g" style="left:46%"></span></div>
+      </div>
+      <div class="field">
+        <div class="frow"><span class="flabel">PROCESS TEMP</span><span class="funit">K</span></div>
+        <div class="fval">309.6</div>
+        <div class="track"><span class="mark g" style="left:52%"></span></div>
+      </div>
+      <div class="field">
+        <div class="frow"><span class="flabel">ROTATIONAL SPEED</span><span class="funit">rpm</span></div>
+        <div class="fval">1320</div>
+        <div class="track"><span class="mark a" style="left:18%"></span></div>
+      </div>
+      <div class="field">
+        <div class="frow"><span class="flabel">TORQUE</span><span class="funit">Nm</span></div>
+        <div class="fval">64.2</div>
+        <div class="track"><span class="mark r" style="left:86%"></span></div>
+      </div>
+      <div class="field">
+        <div class="frow"><span class="flabel">TOOL WEAR</span><span class="funit">min</span></div>
+        <div class="fval">210</div>
+        <div class="track"><span class="mark a" style="left:81%"></span></div>
+      </div>
+
+      <div class="presets">
+        <span class="chip on">▸ FAILURE SAMPLE</span>
+        <span class="chip">NOMINAL SAMPLE</span>
+      </div>
+      <button class="run">▸ Run prediction</button>
+    </div>
+
+    <!-- result pane -->
+    <div class="pane">
+
+      <div class="verdict">
+        <div class="vmain">
+          <div class="vico">!</div>
+          <div>
+            <p class="vtitle">FAILURE RISK DETECTED</p>
+            <p class="vsub">p(failure) <b>0.83</b> &nbsp;exceeds operating threshold τ <b>0.775</b></p>
+          </div>
+        </div>
+        <div class="costchip">EXPECTED LOSS AVOIDED<br><b style="font-size:13px">~$50,000</b></div>
+      </div>
+
+      <div class="twin">
+
+        <!-- gauge -->
+        <div class="card">
+          <p class="h">Failure probability</p>
+          <svg viewBox="0 0 240 152" role="img" aria-label="Failure probability gauge reading 0.83, above the 0.775 threshold">
+            <path d="M28 120 A92 92 0 0 1 212 120" fill="none" stroke="#222b34" stroke-width="14" stroke-linecap="round"/>
+            <path d="M28 120 A92 92 0 0 1 199.2 73.2" fill="none" stroke="#ff5247" stroke-width="14" stroke-linecap="round"/>
+            <line x1="179.3" y1="69.4" x2="200.6" y2="51.2" stroke="#ffb000" stroke-width="3"/>
+            <text x="205" y="44" fill="#ffb000" font-family="JetBrains Mono" font-size="10" font-weight="700">τ 0.775</text>
+            <line x1="120" y1="120" x2="181.9" y2="83.4" stroke="#ff5247" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="120" cy="120" r="5" fill="#ff5247"/>
+            <text x="120" y="108" text-anchor="middle" fill="#ff5247" font-family="JetBrains Mono" font-size="34" font-weight="700">0.83</text>
+            <text x="120" y="140" text-anchor="middle" fill="#8a98a5" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5">P(FAILURE)</text>
+            <text x="24" y="136" fill="#566370" font-family="JetBrains Mono" font-size="9">0.0</text>
+            <text x="216" y="136" fill="#566370" font-family="JetBrains Mono" font-size="9">1.0</text>
+          </svg>
+          <p class="cap">Above threshold → flag for maintenance.</p>
+        </div>
+
+        <!-- shap -->
+        <div class="card">
+          <p class="h">Why — SHAP contributions</p>
+          <svg viewBox="0 0 400 196" role="img" aria-label="SHAP contribution bars: torque, tool wear and rotational speed push toward failure; air temp pushes away">
+            <line x1="130" y1="12" x2="130" y2="172" stroke="#2e3a45" stroke-width="1"/>
+            <!-- torque -->
+            <rect x="130" y="17" width="210" height="18" rx="2" fill="#ff5247" opacity="0.9"/>
+            <text x="92" y="30" text-anchor="end" fill="#8a98a5" font-family="JetBrains Mono" font-size="11">TORQUE</text>
+            <text x="392" y="30" text-anchor="end" fill="#ff7a72" font-family="JetBrains Mono" font-size="11" font-weight="700">+0.41</text>
+            <!-- tool wear -->
+            <rect x="130" y="50" width="143.4" height="18" rx="2" fill="#ff5247" opacity="0.78"/>
+            <text x="92" y="63" text-anchor="end" fill="#8a98a5" font-family="JetBrains Mono" font-size="11">TOOL WEAR</text>
+            <text x="392" y="63" text-anchor="end" fill="#ff7a72" font-family="JetBrains Mono" font-size="11" font-weight="700">+0.28</text>
+            <!-- rot speed -->
+            <rect x="130" y="83" width="97.3" height="18" rx="2" fill="#ff5247" opacity="0.66"/>
+            <text x="92" y="96" text-anchor="end" fill="#8a98a5" font-family="JetBrains Mono" font-size="11">ROT SPEED</text>
+            <text x="392" y="96" text-anchor="end" fill="#ff7a72" font-family="JetBrains Mono" font-size="11" font-weight="700">+0.19</text>
+            <!-- proc temp -->
+            <rect x="130" y="116" width="30.7" height="18" rx="2" fill="#ff5247" opacity="0.5"/>
+            <text x="92" y="129" text-anchor="end" fill="#8a98a5" font-family="JetBrains Mono" font-size="11">PROC TEMP</text>
+            <text x="392" y="129" text-anchor="end" fill="#ff7a72" font-family="JetBrains Mono" font-size="11" font-weight="700">+0.06</text>
+            <!-- air temp -->
+            <rect x="104.4" y="149" width="25.6" height="18" rx="2" fill="#36d399" opacity="0.8"/>
+            <text x="92" y="162" text-anchor="end" fill="#8a98a5" font-family="JetBrains Mono" font-size="11">AIR TEMP</text>
+            <text x="392" y="162" text-anchor="end" fill="#36d399" font-family="JetBrains Mono" font-size="11" font-weight="700">−0.05</text>
+            <text x="200" y="190" text-anchor="middle" fill="#566370" font-family="JetBrains Mono" font-size="9.5" letter-spacing="0.5">◀ lowers risk      raises risk ▶</text>
+          </svg>
+          <p class="cap">High torque + worn tool at low speed = overstrain.</p>
+        </div>
+      </div>
+
+      <!-- cost curve -->
+      <div class="card">
+        <p class="h">Business cost vs decision threshold
+          <span class="legend">
+            <span><i style="border-color:#ffb000"></i>total cost</span>
+            <span><i style="border-color:#566370;border-top-style:dashed"></i>thresholds</span>
+          </span>
+        </p>
+        <svg viewBox="0 0 900 300" role="img" aria-label="Cost versus threshold curve: minimum near 0.775 at 0.24 million dollars, default 0.5 at 2.47 million dollars">
+          <line x1="70" y1="57.6" x2="870" y2="57.6" stroke="#1a2129" stroke-width="1"/>
+          <line x1="70" y1="155.8" x2="870" y2="155.8" stroke="#1a2129" stroke-width="1"/>
+          <line x1="70" y1="254" x2="870" y2="254" stroke="#222b34" stroke-width="1"/>
+          <text x="62" y="60" text-anchor="end" fill="#566370" font-family="JetBrains Mono" font-size="10">$10M</text>
+          <text x="62" y="159" text-anchor="end" fill="#566370" font-family="JetBrains Mono" font-size="10">$1M</text>
+          <text x="62" y="257" text-anchor="end" fill="#566370" font-family="JetBrains Mono" font-size="10">$100K</text>
+
+          <polygon points="70,254 70.0,35.3 78.0,35.8 150.0,41.6 230.0,52.0 310.0,67.5 390.0,89.0 470.0,117.2 550.0,152.6 630.0,195.4 670.0,215.7 690,215 710.0,197.5 750.0,135.5 790.0,85.0 830.0,54.7 870.0,40.6 870,254" fill="#ffb000" opacity="0.05"/>
+          <polyline fill="none" stroke="#ffb000" stroke-width="2.6" stroke-linejoin="round" points="70.0,35.3 78.0,35.8 86.0,36.3 94.0,36.8 102.0,37.4 110.0,38.0 118.0,38.7 126.0,39.3 134.0,40.1 142.0,40.8 150.0,41.6 158.0,42.4 166.0,43.3 174.0,44.2 182.0,45.2 190.0,46.2 198.0,47.3 206.0,48.4 214.0,49.5 222.0,50.7 230.0,52.0 238.0,53.3 246.0,54.6 254.0,56.1 262.0,57.5 270.0,59.0 278.0,60.6 286.0,62.2 294.0,63.9 302.0,65.7 310.0,67.5 318.0,69.4 326.0,71.3 334.0,73.3 342.0,75.3 350.0,77.4 358.0,79.6 366.0,81.9 374.0,84.2 382.0,86.6 390.0,89.0 398.0,91.5 406.0,94.1 414.0,96.7 422.0,99.4 430.0,102.2 438.0,105.1 446.0,108.0 454.0,111.0 462.0,114.1 470.0,117.2 478.0,120.4 486.0,123.7 494.0,127.0 502.0,130.5 510.0,134.0 518.0,137.5 526.0,141.2 534.0,144.9 542.0,148.7 550.0,152.6 558.0,156.5 566.0,160.5 574.0,164.6 582.0,168.8 590.0,173.1 598.0,177.4 606.0,181.8 614.0,186.3 622.0,190.8 630.0,195.4 638.0,200.0 646.0,204.5 654.0,208.8 662.0,212.7 670.0,215.7 678.0,217.3 686.0,216.7 694.0,213.3 702.0,206.8 710.0,197.5 718.0,186.1 726.0,173.6 734.0,160.7 742.0,147.9 750.0,135.5 758.0,123.8 766.0,112.9 774.0,102.7 782.0,93.4 790.0,85.0 798.0,77.4 806.0,70.6 814.0,64.5 822.0,59.2 830.0,54.7 838.0,50.8 846.0,47.4 854.0,44.7 862.0,42.4 870.0,40.6"/>
+
+          <line x1="470" y1="117.2" x2="470" y2="254" stroke="#566370" stroke-width="1.4" stroke-dasharray="4 4"/>
+          <circle cx="470" cy="117.2" r="4" fill="#8a98a5"/>
+          <text x="470" y="108" text-anchor="middle" fill="#8a98a5" font-family="JetBrains Mono" font-size="11" font-weight="700">0.5 default · $2.47M</text>
+
+          <line x1="690" y1="215" x2="690" y2="254" stroke="#ffb000" stroke-width="1.4" stroke-dasharray="4 4"/>
+          <circle cx="690" cy="215" r="5.5" fill="#ffb000" stroke="#0a0d10" stroke-width="1.5"/>
+          <text x="704" y="208" fill="#ffb000" font-family="JetBrains Mono" font-size="12" font-weight="700">τ* = 0.775</text>
+          <text x="704" y="223" fill="#b87d10" font-family="JetBrains Mono" font-size="10">$0.24M · min cost</text>
+
+          <text x="70" y="270" text-anchor="middle" fill="#566370" font-family="JetBrains Mono" font-size="9.5">0.0</text>
+          <text x="270" y="270" text-anchor="middle" fill="#566370" font-family="JetBrains Mono" font-size="9.5">0.25</text>
+          <text x="470" y="270" text-anchor="middle" fill="#566370" font-family="JetBrains Mono" font-size="9.5">0.50</text>
+          <text x="690" y="270" text-anchor="middle" fill="#ffb000" font-family="JetBrains Mono" font-size="9.5">0.775</text>
+          <text x="870" y="270" text-anchor="middle" fill="#566370" font-family="JetBrains Mono" font-size="9.5">1.0</text>
+          <text x="470" y="290" text-anchor="middle" fill="#8a98a5" font-family="JetBrains Mono" font-size="10" letter-spacing="1.5">DECISION THRESHOLD τ</text>
+        </svg>
+        <p class="cap">Default 0.5 misclassifies costly false alarms — <b style="color:#e8eef3">~10× higher cost</b> than the tuned τ. Optimum minimises FN×$50K + FP×$2K.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>COST MODEL · FN $50,000 · FP $2,000 · AI4I-2020 · 10,000 cycles · 3.4% failure rate</span>
+    <span>MOCKUP · INDUSTRIAL THEME v1</span>
+  </div>
+
+</div>
+</body>
+</html>
