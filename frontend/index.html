@@ -3,108 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Industrial Failure Classifier</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Failure check · cost-tuned machine failure prediction</title>
+  <script>
+    (function () {
+      try {
+        var match = document.cookie.match(/(?:^|; )mode=(light|dark)/);
+        var stored = match ? match[1] : localStorage.getItem('mode');
+        var fallback = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+        var theme = stored === 'dark' ? 'night' : stored === 'light' ? 'day' : fallback;
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'day');
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&family=B612+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260705c" />
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <div class="header-title">
-        <span class="header-icon">⚙️</span>
-        <div>
-          <h1>Industrial Failure Classifier</h1>
-          <p class="header-sub">Business-cost-tuned failure prediction · AI4I 2020 · XGBoost + SHAP</p>
-        </div>
+  <header class="nameplate">
+    <div class="nameplate-main">
+      <div class="nameplate-title">
+        <h1>Failure check</h1>
+        <p>Predicts near-term machine failure, tuned to maintenance economics. Built by Alvin Alias.</p>
       </div>
-      <div id="api-status" class="status-badge status-checking">⏳ Checking API…</div>
+      <div class="governing-number">
+        <div class="mono">recall 91.2% / threshold 0.775</div>
+        <p>cost-optimal: a miss is $50K, a false alarm $2K</p>
+      </div>
+      <nav class="nameplate-links" aria-label="Project links">
+        <a href="https://github.com/aalias01/industrial-failure-classification">GitHub</a>
+        <a href="https://industrial-failure-classification.onrender.com/docs">API docs</a>
+        <a href="https://alvinalias.com/notes/posts/threshold-economics.html">Write-up</a>
+      </nav>
+      <div class="nameplate-meta">
+        <div class="series mono">AA-2026-06</div>
+        <div id="api-status" class="status-line mono" aria-live="polite">model waking, first run may take up to a minute</div>
+        <button id="mode-toggle" class="mode-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <span class="mode-track">
+            <span class="toggle-knob" aria-hidden="true"></span>
+          </span>
+        </button>
+      </div>
     </div>
+    <div id="compact-warmup" class="compact-warmup hidden" aria-live="polite"></div>
   </header>
 
-  <main>
-    <section class="card input-card">
-      <h2>Sensor Readings</h2>
-      <p class="section-hint">Enter current sensor values. The model predicts failure probability using a business-cost-optimal threshold (FN=$50K, FP=$2K).</p>
+  <main class="instrument">
+    <section class="faceplate" aria-labelledby="inputs-title">
+      <div class="section-head">
+        <h2 id="inputs-title">Operating point</h2>
+        <p>Draws a real record from the AI4I test data. What actually happened to the machine stays hidden until the model commits.</p>
+      </div>
 
-      <div class="form-grid">
-        <label class="form-group">
-          <span class="label-text">Air Temperature (K)</span>
-          <input type="number" id="air_temp" value="298.1" step="0.1" min="290" max="310" />
+      <div class="input-grid">
+        <label class="input-cell">
+          <span>Air temp (K)</span>
+          <input id="air_temp" name="air_temperature_k" type="number" min="290" max="310" step="0.1" value="298.1" />
+          <small class="mono">290 to 310 K</small>
         </label>
-        <label class="form-group">
-          <span class="label-text">Process Temperature (K)</span>
-          <input type="number" id="proc_temp" value="308.6" step="0.1" min="305" max="315" />
+        <label class="input-cell">
+          <span>Process temp (K)</span>
+          <input id="proc_temp" name="process_temperature_k" type="number" min="305" max="315" step="0.1" value="308.6" />
+          <small class="mono">305 to 315 K</small>
         </label>
-        <label class="form-group">
-          <span class="label-text">Rotational Speed (rpm)</span>
-          <input type="number" id="rpm" value="1551" step="1" min="1168" max="2886" />
+        <label class="input-cell">
+          <span>Speed (rpm)</span>
+          <input id="rpm" name="rotational_speed_rpm" type="number" min="1168" max="2886" step="1" value="1551" />
+          <small class="mono">1168 to 2886 rpm</small>
         </label>
-        <label class="form-group">
-          <span class="label-text">Torque (Nm)</span>
-          <input type="number" id="torque" value="42.8" step="0.1" min="3.8" max="76.6" />
+        <label class="input-cell">
+          <span>Torque (Nm)</span>
+          <input id="torque" name="torque_nm" type="number" min="3.8" max="76.6" step="0.1" value="42.8" />
+          <small class="mono">3.8 to 76.6 Nm</small>
         </label>
-        <label class="form-group">
-          <span class="label-text">Tool Wear (min)</span>
-          <input type="number" id="wear" value="0" step="1" min="0" max="253" />
+        <label class="input-cell">
+          <span>Tool wear (min)</span>
+          <input id="wear" name="tool_wear_min" type="number" min="0" max="253" step="1" value="0" />
+          <small class="mono">0 to 253 min</small>
         </label>
       </div>
 
-      <button id="predict-btn" onclick="runPrediction()">Predict Failure Risk</button>
-    </section>
-
-    <section id="result-section" class="card result-card hidden">
-      <h2>Risk Assessment</h2>
-      <div class="risk-display">
-        <div id="risk-badge" class="risk-badge risk-low">
-          <span id="risk-icon">✅</span>
-          <span id="risk-label">Low Risk</span>
-        </div>
-        <div class="probability-display">
-          <div class="prob-number" id="prob-number">0.00%</div>
-          <div class="prob-label">Failure Probability</div>
-        </div>
-        <div class="threshold-info">
-          <span id="threshold-text">Threshold: 0.5 · Prediction: No Failure</span>
-        </div>
-      </div>
-
-      <div id="cost-warning" class="cost-warning hidden">
-        ⚠️ <strong>Estimated cost if failure missed:</strong> <span id="cost-value">$0</span>
-      </div>
-
-      <div id="shap-section" class="shap-section hidden">
-        <h3>Top Contributing Factors</h3>
-        <p class="section-hint">SHAP values show each sensor's contribution to the predicted risk.</p>
-        <div id="shap-bars"></div>
+      <div class="run-row">
+        <button id="known-run" class="primary-button" type="button">Test a real machine record</button>
+        <button id="manual-run" class="secondary-button" type="button">Set the values yourself</button>
+        <div id="run-log" class="run-log mono" aria-live="polite"></div>
       </div>
     </section>
 
-    <section class="card info-card">
-      <h2>How Threshold Tuning Works</h2>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-icon">⚖️</div>
-          <h3>Asymmetric Costs</h3>
-          <p>Missing a real failure costs <strong>$50,000</strong> in unplanned downtime. A false alarm costs <strong>$2,000</strong> in unnecessary maintenance. These are very different errors.</p>
+    <section class="verdict" aria-labelledby="verdict-title">
+      <div class="verdict-band">
+        <div class="probability-block">
+          <div id="probability-value" class="probability-value mono" title="API field: failure_probability">waiting</div>
+          <h2 id="verdict-title">failure probability</h2>
         </div>
-        <div class="info-item">
-          <div class="info-icon">📉</div>
-          <h3>Default 0.5 is Wrong</h3>
-          <p>The default threshold maximizes accuracy — which is misleading when failures are only 3.4% of records. 97% accuracy by always predicting "no failure" is useless.</p>
-        </div>
-        <div class="info-item">
-          <div class="info-icon">🎯</div>
-          <h3>Cost-Optimal Threshold</h3>
-          <p>The optimal threshold minimizes: <code>FN × $50K + FP × $2K</code>. In the current model, that moves the operating threshold to 0.775, reducing false alarms while keeping recall high.</p>
-        </div>
+        <div id="verdict-stamp" class="verdict-stamp">waiting for prediction</div>
+        <div id="cost-line" class="cost-line hidden"></div>
       </div>
+
+      <div id="full-warmup" class="full-warmup hidden" aria-live="polite"></div>
+      <div id="error-block" class="error-block hidden" role="alert"></div>
+
+      <div id="probability-scale" class="scale-shell" aria-label="Failure probability scale"></div>
+      <p class="threshold-context">The default 0.5 threshold treats a $50,000 miss and a $2,000 false alarm as equal mistakes. Sweeping the threshold against those costs puts the optimum at 0.775 (note 2).</p>
+
+      <div id="truth-line" class="truth-line hidden"></div>
+    </section>
+
+    <section class="deflection" aria-labelledby="deflection-title">
+      <h2 id="deflection-title">What moved this prediction</h2>
+      <div id="shap-table" class="shap-table"></div>
+    </section>
+
+    <section class="folds" aria-label="Project record">
+      <details>
+        <summary>Calibration record · why 0.775 and not 0.5, in dollars</summary>
+        <div class="fold-content">
+          <div id="sweep-panel" class="sweep-panel hidden">
+            <div class="cost-controls">
+              <label>
+                <span>cost of a missed failure</span>
+                <input id="fn-cost" type="number" min="0" step="1000" value="50000" />
+              </label>
+              <label>
+                <span>cost of a false alarm</span>
+                <input id="fp-cost" type="number" min="0" step="100" value="2000" />
+              </label>
+            </div>
+            <div id="cost-curve" class="cost-curve"></div>
+            <p id="sweep-optimum" class="mono">at these costs the best threshold is 0.775</p>
+            <p>curve computed from the real test-set counts shipped with this page; at $50,000 and $2,000 the optimum is 0.775</p>
+          </div>
+          <div id="sweep-fallback" class="sweep-fallback hidden">
+            <p>The default 0.5 threshold treats a $50,000 miss and a $2,000 false alarm as equal mistakes. Sweeping the threshold against those costs puts the optimum at 0.775 (note 2).</p>
+          </div>
+          <table class="calibration-table">
+            <tbody>
+              <tr><th>Recall 91.2% at threshold 0.775</th><td>62 of 68 test-set failures caught, 6 missed, 83 false alarms</td></tr>
+              <tr><th>PR-AUC 0.841</th><td>XGBoost with SMOTE and class weighting</td></tr>
+              <tr><th>ROC-AUC 0.979</th><td>held-out test set</td></tr>
+              <tr><th>Baselines</th><td>random forest PR-AUC 0.820, logistic regression 0.455</td></tr>
+              <tr><th>Class balance</th><td>Failures are 3.4% of records; accuracy is meaningless here and is not reported</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details>
+        <summary>How it works · imbalance, SMOTE, threshold sweep</summary>
+        <div class="fold-content">
+          <p>Failures are rare and expensive, so the work is in the imbalance and the economics: SMOTE plus class weighting for recall, then a threshold sweep that minimizes modeled total cost instead of maximizing F1; the strongest SHAP factors are torque, wear, and speed, which matches the mechanics.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Notes · the costs are modeled and stated in the open</summary>
+        <div class="fold-content">
+          <ol class="notes-list">
+            <li>This runs on a free tier that sleeps between visitors. First start takes 30 to 60 seconds; runs after that are quick.</li>
+            <li>The $50,000 and $2,000 figures are modeled costs, chosen to represent unplanned downtime against a scheduled maintenance call; change the costs and the optimal threshold moves. The sweep is in the repo.</li>
+            <li>Known records are drawn from the AI4I 2020 dataset with their recorded outcomes; misses and false alarms print as plainly as catches.</li>
+            <li>This model classifies near-term failure; the turbofan page estimates remaining life. Same domain, different question.</li>
+          </ol>
+        </div>
+      </details>
     </section>
   </main>
 
-  <footer>
-    <p>Built by <a href="https://github.com/aalias01" target="_blank">Alvin Alias</a> — MS Data Science, UW · 12 years industrial engineering · XGBoost + SHAP + business-cost threshold tuning</p>
+  <footer class="footer">
+    Built by Alvin Alias · 2026 · AA-2026-06 · <a href="https://github.com/aalias01/industrial-failure-classification">GitHub</a> · <a href="https://industrial-failure-classification.onrender.com/docs">API docs</a>
   </footer>
 
   <script>window.INDUSTRIAL_FAILURE_API_BASE = 'https://industrial-failure-classification.onrender.com';</script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260705b"></script>
 </body>
 </html>

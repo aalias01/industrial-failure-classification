@@ -7,10 +7,12 @@ __pycache__/
 .env
 .venv/
 .ipynb_checkpoints/
+mockup-industrial-redesign.html
 # Keep trained artifacts for API
 models/*
 !models/.gitkeep
 !models/xgb_classifier.joblib
 !models/scaler.joblib
 !models/model_meta.json
+!models/MODEL_CARD.md
 .DS_Store

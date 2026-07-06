@@ -37,9 +37,15 @@ class PredictResponse(BaseModel):
     top_shap_factors: Optional[list[SHAPFactor]] = None
 
 
+class RiskZones(BaseModel):
+    low_below: float
+    high_at: float
+
+
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     model_type: str
     optimal_threshold: float
+    risk_zones: RiskZones
     version: str = "0.1.0"

@@ -1,0 +1,125 @@
+{
+  "note": "Real rows from ai4i2020.csv, seed 42, 6 failures (RNF excluded) and 6 non-failures, shuffled. machine_failure is the ground truth, revealed only after the model commits.",
+  "records": [
+    {
+      "udi": 328,
+      "type": "L",
+      "air_temperature_k": 297.7,
+      "process_temperature_k": 308.5,
+      "rotational_speed_rpm": 1373.0,
+      "torque_nm": 56.7,
+      "tool_wear_min": 203.0,
+      "machine_failure": 1
+    },
+    {
+      "udi": 4121,
+      "type": "M",
+      "air_temperature_k": 302.1,
+      "process_temperature_k": 310.7,
+      "rotational_speed_rpm": 1376.0,
+      "torque_nm": 46.3,
+      "tool_wear_min": 210.0,
+      "machine_failure": 1
+    },
+    {
+      "udi": 1726,
+      "type": "M",
+      "air_temperature_k": 298.3,
+      "process_temperature_k": 307.8,
+      "rotational_speed_rpm": 1392.0,
+      "torque_nm": 50.4,
+      "tool_wear_min": 101.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 9260,
+      "type": "M",
+      "air_temperature_k": 298.2,
+      "process_temperature_k": 309.0,
+      "rotational_speed_rpm": 1694.0,
+      "torque_nm": 28.0,
+      "tool_wear_min": 5.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 2348,
+      "type": "L",
+      "air_temperature_k": 299.2,
+      "process_temperature_k": 308.3,
+      "rotational_speed_rpm": 1410.0,
+      "torque_nm": 43.0,
+      "tool_wear_min": 26.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 7195,
+      "type": "L",
+      "air_temperature_k": 300.1,
+      "process_temperature_k": 310.1,
+      "rotational_speed_rpm": 1380.0,
+      "torque_nm": 52.6,
+      "tool_wear_min": 59.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 4174,
+      "type": "M",
+      "air_temperature_k": 302.2,
+      "process_temperature_k": 310.6,
+      "rotational_speed_rpm": 1346.0,
+      "torque_nm": 49.2,
+      "tool_wear_min": 134.0,
+      "machine_failure": 1
+    },
+    {
+      "udi": 537,
+      "type": "L",
+      "air_temperature_k": 297.4,
+      "process_temperature_k": 309.3,
+      "rotational_speed_rpm": 1759.0,
+      "torque_nm": 24.8,
+      "tool_wear_min": 81.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 1465,
+      "type": "L",
+      "air_temperature_k": 298.8,
+      "process_temperature_k": 310.0,
+      "rotational_speed_rpm": 1412.0,
+      "torque_nm": 46.3,
+      "tool_wear_min": 107.0,
+      "machine_failure": 0
+    },
+    {
+      "udi": 4280,
+      "type": "L",
+      "air_temperature_k": 302.0,
+      "process_temperature_k": 310.1,
+      "rotational_speed_rpm": 1361.0,
+      "torque_nm": 45.4,
+      "tool_wear_min": 174.0,
+      "machine_failure": 1
+    },
+    {
+      "udi": 2245,
+      "type": "M",
+      "air_temperature_k": 299.3,
+      "process_temperature_k": 308.4,
+      "rotational_speed_rpm": 1542.0,
+      "torque_nm": 37.5,
+      "tool_wear_min": 203.0,
+      "machine_failure": 1
+    },
+    {
+      "udi": 9654,
+      "type": "L",
+      "air_temperature_k": 299.0,
+      "process_temperature_k": 309.9,
+      "rotational_speed_rpm": 1373.0,
+      "torque_nm": 55.7,
+      "tool_wear_min": 201.0,
+      "machine_failure": 1
+    }
+  ]
+}

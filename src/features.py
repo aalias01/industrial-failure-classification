@@ -21,7 +21,6 @@ import io
 import zipfile
 from pathlib import Path
 import pandas as pd
-import numpy as np
 import requests
 
 UCI_URL = (
@@ -56,7 +55,7 @@ def download_data(dest: Path = RAW_PATH) -> Path:
     if dest.exists():
         print(f"[features] Already exists: {dest}")
         return dest
-    print(f"[features] Downloading from UCI...")
+    print("[features] Downloading from UCI...")
     resp = requests.get(UCI_URL, timeout=60)
     resp.raise_for_status()
     with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:

@@ -28,7 +28,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     classification_report, confusion_matrix,
     roc_auc_score, average_precision_score,
-    precision_recall_curve, f1_score,
+    f1_score,
 )
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.preprocessing import StandardScaler
@@ -108,6 +108,7 @@ class FailureClassifier:
         self.model = self._build_model()
         self.optimal_threshold: float = 0.5
         self.feature_names: list[str] = []
+        self._tree_explainer = None
         # 75th-percentile cutoff of `power` (rpm * torque) used to construct the
         # binary `high_load` engineered feature. Persisted so the API can build
         # the same feature for single-row predictions without re-deriving from
@@ -136,6 +137,7 @@ class FailureClassifier:
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "FailureClassifier":
         self.feature_names = list(X.columns)
+        self._tree_explainer = None
         X_arr = self.scaler.fit_transform(X)
 
         if self.use_smote:
@@ -219,7 +221,9 @@ class FailureClassifier:
             else:
                 # Random Forest path uses shap (RF has stable shap support).
                 import shap
-                explainer = shap.TreeExplainer(self.model)
+                if self._tree_explainer is None:
+                    self._tree_explainer = shap.TreeExplainer(self.model)
+                explainer = self._tree_explainer
                 shap_values = explainer.shap_values(X_arr)
                 sv = np.asarray(shap_values[1][0] if isinstance(shap_values, list) else shap_values[0])
         else:
@@ -267,6 +271,7 @@ class FailureClassifier:
         obj.scaler = joblib.load(path / "scaler.joblib")
         obj.model = joblib.load(path / "xgb_classifier.joblib")
         obj.feature_names = meta["feature_names"]
+        obj._tree_explainer = None
         obj.optimal_threshold = meta["optimal_threshold"]
         obj.is_fitted = True
         return obj

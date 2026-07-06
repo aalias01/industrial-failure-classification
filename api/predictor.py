@@ -26,6 +26,19 @@ def is_ready() -> bool:
     return _ready
 
 
+def risk_level_for_probability(proba: float, threshold: float) -> str:
+    if proba < min(LOW_RISK_CUTOFF, threshold):
+        return "low"
+    if proba < threshold:
+        return "medium"
+    return "high"
+
+
+def risk_zones() -> dict[str, float]:
+    high_at = _clf.optimal_threshold if _clf else 0.5
+    return {"low_below": LOW_RISK_CUTOFF, "high_at": high_at}
+
+
 def predict(reading: SensorReading, include_shap: bool = True) -> PredictResponse:
     if not _ready or _clf is None:
         raise RuntimeError("Model not loaded.")
@@ -35,12 +48,7 @@ def predict(reading: SensorReading, include_shap: bool = True) -> PredictRespons
     proba = float(_clf.predict_proba(row_df)[0])
     pred  = int(proba >= _clf.optimal_threshold)
 
-    if proba < min(LOW_RISK_CUTOFF, _clf.optimal_threshold):
-        risk_level = "low"
-    elif proba < _clf.optimal_threshold:
-        risk_level = "medium"
-    else:
-        risk_level = "high"
+    risk_level = risk_level_for_probability(proba, _clf.optimal_threshold)
 
     shap_factors = None
     if include_shap:

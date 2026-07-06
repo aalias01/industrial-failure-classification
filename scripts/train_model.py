@@ -16,8 +16,8 @@ from sklearn.model_selection import train_test_split
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.features import build_features, download_data, get_X_y, load_raw
-from src.model import FailureClassifier
+from src.features import build_features, download_data, get_X_y, load_raw  # noqa: E402
+from src.model import FailureClassifier  # noqa: E402
 
 
 def main() -> None:
