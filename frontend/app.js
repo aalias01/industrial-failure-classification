@@ -464,7 +464,7 @@ function renderNetworkOrPredictionError(error) {
   const raw = error && error.message ? error.message : String(error);
   if (raw === 'Failed to fetch' || raw.includes('NetworkError')) {
     renderError(
-      'Prediction failed. This runs on a free tier that sleeps between visitors. First start takes 30 to 60 seconds; runs after that are quick. Try again in a moment.',
+      'Prediction failed. This ML demo sleeps after extended inactivity; the Space may still be waking. Try again in a moment.',
       raw,
     );
   } else {
