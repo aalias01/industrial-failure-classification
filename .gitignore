@@ -23,5 +23,3 @@ deploy/hf_space/src/
 deploy/hf_space/models/
 deploy/hf_space/requirements.txt
 
-# Local HF Space clone (manual push vehicle; GitHub Action clones fresh in CI)
-industrial-failure/
