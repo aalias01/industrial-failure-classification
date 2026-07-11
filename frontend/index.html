@@ -58,39 +58,44 @@
         <p>Draws a real record from the AI4I test data. What actually happened to the machine stays hidden until the model commits.</p>
       </div>
 
-      <div class="input-grid">
-        <label class="input-cell">
-          <span>Air temp (K)</span>
-          <input id="air_temp" name="air_temperature_k" type="number" min="290" max="310" step="0.1" value="298.1" />
-          <small class="mono">290 to 310 K</small>
-        </label>
-        <label class="input-cell">
-          <span>Process temp (K)</span>
-          <input id="proc_temp" name="process_temperature_k" type="number" min="305" max="315" step="0.1" value="308.6" />
-          <small class="mono">305 to 315 K</small>
-        </label>
-        <label class="input-cell">
-          <span>Speed (rpm)</span>
-          <input id="rpm" name="rotational_speed_rpm" type="number" min="1168" max="2886" step="1" value="1551" />
-          <small class="mono">1168 to 2886 rpm</small>
-        </label>
-        <label class="input-cell">
-          <span>Torque (Nm)</span>
-          <input id="torque" name="torque_nm" type="number" min="3.8" max="76.6" step="0.1" value="42.8" />
-          <small class="mono">3.8 to 76.6 Nm</small>
-        </label>
-        <label class="input-cell">
-          <span>Tool wear (min)</span>
-          <input id="wear" name="tool_wear_min" type="number" min="0" max="253" step="1" value="0" />
-          <small class="mono">0 to 253 min</small>
-        </label>
-      </div>
-
       <div class="run-row">
         <button id="known-run" class="primary-button" type="button">Test a real machine record</button>
-        <button id="manual-run" class="secondary-button" type="button">Set the values yourself</button>
         <div id="run-log" class="run-log mono" aria-live="polite"></div>
       </div>
+
+      <details class="manual-values mobile-disclosure" data-mobile-disclosure open>
+        <summary>Set the values yourself</summary>
+        <div class="mobile-disclosure__body">
+          <div class="input-grid">
+            <label class="input-cell">
+              <span>Air temp (K)</span>
+              <input id="air_temp" name="air_temperature_k" type="number" min="290" max="310" step="0.1" value="298.1" />
+              <small class="mono">290 to 310 K</small>
+            </label>
+            <label class="input-cell">
+              <span>Process temp (K)</span>
+              <input id="proc_temp" name="process_temperature_k" type="number" min="305" max="315" step="0.1" value="308.6" />
+              <small class="mono">305 to 315 K</small>
+            </label>
+            <label class="input-cell">
+              <span>Speed (rpm)</span>
+              <input id="rpm" name="rotational_speed_rpm" type="number" min="1168" max="2886" step="1" value="1551" />
+              <small class="mono">1168 to 2886 rpm</small>
+            </label>
+            <label class="input-cell">
+              <span>Torque (Nm)</span>
+              <input id="torque" name="torque_nm" type="number" min="3.8" max="76.6" step="0.1" value="42.8" />
+              <small class="mono">3.8 to 76.6 Nm</small>
+            </label>
+            <label class="input-cell">
+              <span>Tool wear (min)</span>
+              <input id="wear" name="tool_wear_min" type="number" min="0" max="253" step="1" value="0" />
+              <small class="mono">0 to 253 min</small>
+            </label>
+          </div>
+          <button id="manual-run" class="secondary-button" type="button">Score these values</button>
+        </div>
+      </details>
     </section>
 
     <section class="verdict" aria-labelledby="verdict-title">
@@ -107,15 +112,21 @@
       <div id="error-block" class="error-block hidden" role="alert"></div>
 
       <div id="probability-scale" class="scale-shell" aria-label="Failure probability scale"></div>
-      <p class="threshold-context">The default 0.5 threshold treats a $50,000 miss and a $2,000 false alarm as equal mistakes. Sweeping the threshold against those costs puts the optimum at 0.775 (note 2).</p>
+      <details class="threshold-context mobile-disclosure" data-mobile-disclosure open>
+        <summary>Why the threshold is 0.775</summary>
+        <p class="mobile-disclosure__body">The default 0.5 threshold treats a $50,000 miss and a $2,000 false alarm as equal mistakes. Sweeping the threshold against those costs puts the optimum at 0.775 (note 2).</p>
+      </details>
 
       <div id="truth-line" class="truth-line hidden"></div>
     </section>
 
-    <section class="deflection" aria-labelledby="deflection-title">
-      <h2 id="deflection-title">What moved this prediction</h2>
-      <div id="shap-table" class="shap-table"></div>
-    </section>
+    <details class="deflection mobile-disclosure" data-mobile-disclosure open>
+      <summary>What moved this prediction</summary>
+      <section class="mobile-disclosure__body" aria-labelledby="deflection-title">
+        <h2 id="deflection-title">What moved this prediction</h2>
+        <div id="shap-table" class="shap-table"></div>
+      </section>
+    </details>
 
     <section class="folds" aria-label="Project record">
       <details>
@@ -175,6 +186,7 @@
   </footer>
 
   <script>window.INDUSTRIAL_FAILURE_API_BASE = 'https://alvinalias-portfolio-ml-api.hf.space/industrial';</script>
+  <script src="mobile-disclosures.js"></script>
   <script src="app.js?v=20260705b"></script>
 </body>
 </html>
