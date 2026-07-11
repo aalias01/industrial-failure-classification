@@ -1,6 +1,6 @@
 # Industrial Failure Classification
 
-Binary failure prediction on imbalanced sensor data, tuned for maintenance economics instead of statistical defaults. The cost-optimal prediction threshold is 0.775, not 0.5: at that threshold the model catches 62 of 68 test-set failures (91.2% recall) at an estimated total cost of $466K, versus $50K per missed failure.
+I tuned an XGBoost failure classifier for maintenance cost instead of accepting the default 0.5 threshold. The cost-optimal threshold is 0.775. It catches 62 of 68 test-set failures (91.2% recall) at an estimated total cost of $466K, with each missed failure priced at $50K.
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
 [![CI](https://github.com/aalias01/industrial-failure-classification/actions/workflows/ci.yml/badge.svg)](https://github.com/aalias01/industrial-failure-classification/actions/workflows/ci.yml)
