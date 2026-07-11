@@ -9,9 +9,9 @@ I tuned an XGBoost failure classifier for maintenance cost instead of accepting 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-green)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e)](LICENSE)
 
-**[Live demo](https://machine-failure.alvinalias.com)** | **[API docs](https://industrial-failure-classification.onrender.com/docs)**
+**[Live demo](https://machine-failure.alvinalias.com)** | **[API docs](https://alvinalias-portfolio-ml-api.hf.space/industrial/docs)**
 
-The API runs on Render's free tier and spins down when idle; the first request can take ~50 seconds while it wakes.
+The API is mounted at `/industrial` in a shared Hugging Face CPU Space. After extended inactivity, the first request can take a moment while the Space wakes and loads the model.
 
 ## Why threshold tuning is the point
 
@@ -83,14 +83,14 @@ notebooks/04_shap.ipynb         global + per-prediction SHAP
         |
 scripts/train_model.py          repeatable build of deployment artifacts
         |
-api/main.py (FastAPI, Render)   POST /predict -> probability + risk tier + top SHAP factors
+api/main.py (FastAPI, HF)       POST /predict -> probability + risk tier + top SHAP factors
         |
 frontend/ (vanilla JS, Vercel)  go/no-go checkpoint with known records and cost sweep
 ```
 
 ## Tech stack
 
-Python 3.11, XGBoost 2.0, scikit-learn 1.3, imblearn (SMOTE), SHAP in notebooks with XGBoost native `pred_contribs` in the API, FastAPI on Render, vanilla HTML/CSS/JS on Vercel.
+Python 3.11, XGBoost 2.0, scikit-learn 1.3, imblearn (SMOTE), SHAP in notebooks with XGBoost native `pred_contribs` in the API, FastAPI on a shared Hugging Face Docker Space, vanilla HTML/CSS/JS on Vercel.
 
 ## Run it locally
 
@@ -129,7 +129,7 @@ The calibration fold reads `frontend/sweep.json`. Rebuild it with `python script
 ## Limitations
 
 - The $50K / $2K cost assumptions are representative, not customer data; the threshold sweep re-runs trivially with real numbers.
-- AI4I is a synthetic dataset built to mimic real predictive-maintenance data, so results demonstrate method, not field performance.
+- AI4I is synthetic data designed to resemble predictive-maintenance records. The results do not measure field performance.
 - The committed model artifact is a quick build from `scripts/train_model.py`; the notebooks document the full comparison.
 
 ## Dataset credit
